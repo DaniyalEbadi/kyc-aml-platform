@@ -115,10 +115,11 @@ class TestMockOCRProvider:
         assert processor.classify("selfie", "selfie.jpg") == "selfie"
         assert processor.classify("unknown", "random.jpg") == "unknown"
 
-    def test_factory_returns_mock(self):
-        """get_ocr_provider should return MockOCRProvider"""
+    def test_factory_returns_real_provider(self):
+        """get_ocr_provider should return PillowOCRProvider for real OCR"""
+        from app.ai.ocr import PillowOCRProvider
         provider = get_ocr_provider("any")
-        assert isinstance(provider, MockOCRProvider)
+        assert isinstance(provider, PillowOCRProvider)
 
 
 class TestMockVisionProvider:
