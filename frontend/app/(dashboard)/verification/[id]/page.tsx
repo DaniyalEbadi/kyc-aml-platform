@@ -92,35 +92,50 @@ export default function VerificationPage() {
                     <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${v.score * 100}%` }} />
                   </div>
                 )}
+                {v.kind === "ocr" && v.details && (
+                  <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                    <span>ارائه‌دهنده: {v.details.provider === "mock" ? "شبیه‌ساز" : v.details.provider === "easyocr" ? "EasyOCR (واقعی)" : v.details.provider}</span>
+                    {v.details.is_simulated !== undefined && (
+                      <span className={v.details.is_simulated ? "text-amber-400" : "text-emerald-400"}>
+                        {v.details.is_simulated ? "شبیه‌سازی شده" : "واقعی"}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Document Quality */}
+        {/* Document Quality & Extracted Fields */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <h3 className="text-sm font-semibold text-white mb-4">کیفیت مدارک</h3>
+          <h3 className="text-sm font-semibold text-white mb-4">کیفیت و اطلاعات استخراج شده</h3>
           <div className="space-y-3">
             {app.documents.length === 0 ? <p className="text-slate-500 text-center py-4">مدرکی بارگذاری نشده</p> : app.documents.map((d) => (
               <div key={d.id} className="p-3 bg-slate-700/20 rounded-xl">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-white">{DOC_TYPE_MAP[d.doc_type] || d.doc_type}</span>
-                  <span className="text-xs text-slate-400">{d.status}</span>
+                  <span className={`px-2 py-0.5 rounded text-xs ${d.status === "processed" ? "bg-emerald-400/10 text-emerald-400" : d.status === "processing" ? "bg-brand-400/10 text-brand-400" : "bg-slate-600/50 text-slate-300"}`}>
+                    {d.status === "uploaded" ? "بارگذاری" : d.status === "processing" ? "پردازش" : d.status === "processed" ? "تکمیل" : d.status}
+                  </span>
                 </div>
-                {d.fields && d.fields.length > 0 && (
-                  <div className="grid grid-cols-2 gap-1 text-xs">
-                    {d.fields.slice(0, 4).map((f) => (
-                      <div key={f.id} className="flex items-center justify-between">
+                {d.fields && d.fields.length > 0 ? (
+                  <div className="space-y-1.5 mt-3">
+                    {d.fields.map((f) => (
+                      <div key={f.id} className="flex items-center justify-between text-xs">
                         <span className="text-slate-400">{f.field_label}</span>
-                        <div className="flex items-center gap-1">
-                          <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div className="h-full bg-brand-500 rounded-full" style={{ width: `${f.confidence * 100}%` }} />
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-medium">{f.value || "-"}</span>
+                          <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${f.confidence >= 0.8 ? "bg-emerald-500" : f.confidence >= 0.6 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${f.confidence * 100}%` }} />
                           </div>
-                          <span className="text-slate-300">{Math.round(f.confidence * 100)}%</span>
+                          <span className="text-slate-500 w-8 text-left">{Math.round(f.confidence * 100)}%</span>
                         </div>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-xs text-slate-500 mt-2">اطلاعاتی استخراج نشده</p>
                 )}
               </div>
             ))}
