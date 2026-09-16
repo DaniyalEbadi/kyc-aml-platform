@@ -1,0 +1,19 @@
+This product is a substantial derivative of:
+
+  kyc-onboarding-agent
+  https://github.com/sachithpriyanga/kyc-onboarding-agent
+  License: MIT
+
+The original work demonstrated:
+  - deterministic document validation (no LLM)
+  - policy retrieval / RAG grounding
+  - rule-based approve / resubmit / escalate boundaries
+  - LLM-assisted explanations only
+  - append-only audit logging
+  - mock account lookup
+  - mock LLM mode for offline development
+
+Those concepts are preserved and expanded in this Persian KYC/AML platform.
+The original CLI is not the primary interface.
+
+Original copyright notice is retained in LICENSE.

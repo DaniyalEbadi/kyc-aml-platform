@@ -1,0 +1,3 @@
+# Performance Test Requirements
+locust==2.32.1
+k6==0.53.0
