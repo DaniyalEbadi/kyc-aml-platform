@@ -123,19 +123,40 @@ export default function ApplicationDetailPage() {
               </label>
             </div>
             {app.documents.length === 0 ? <p className="text-slate-500 text-center py-8">مدرکی بارگذاری نشده</p> : app.documents.map((d) => (
-              <div key={d.id} className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-600/50 flex items-center justify-center text-slate-300">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+              <div key={d.id} className="bg-slate-700/30 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-slate-600/50 flex items-center justify-center text-slate-300">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white">{DOC_TYPE_MAP[d.doc_type] || d.doc_type}</p>
+                      <p className="text-xs text-slate-400">{d.original_filename} | {(d.size_bytes / 1024).toFixed(0)} KB</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-white">{DOC_TYPE_MAP[d.doc_type] || d.doc_type}</p>
-                    <p className="text-xs text-slate-400">{d.original_filename} | {(d.size_bytes / 1024).toFixed(0)} KB</p>
-                  </div>
+                  <span className={`px-3 py-1 rounded-lg text-xs font-medium ${d.status === "processed" ? "bg-emerald-400/10 text-emerald-400" : d.status === "failed" ? "bg-red-400/10 text-red-400" : d.status === "processing" ? "bg-brand-400/10 text-brand-400" : "bg-slate-600/50 text-slate-300"}`}>
+                    {d.status === "uploaded" ? "بارگذاری شده" : d.status === "processing" ? "در حال پردازش" : d.status === "processed" ? "پردازش شده" : d.status === "failed" ? "ناموفق" : d.status}
+                  </span>
                 </div>
-                <span className={`px-3 py-1 rounded-lg text-xs font-medium ${d.status === "processed" ? "bg-emerald-400/10 text-emerald-400" : d.status === "failed" ? "bg-red-400/10 text-red-400" : "bg-slate-600/50 text-slate-300"}`}>
-                  {d.status === "uploaded" ? "بارگذاری شده" : d.status === "processing" ? "در حال پردازش" : d.status === "processed" ? "پردازش شده" : d.status === "failed" ? "ناموفق" : d.status}
-                </span>
+                {d.status === "processed" && (d as any).fields && (d as any).fields.length > 0 && (
+                  <div className="px-4 pb-4 border-t border-slate-600/30">
+                    <p className="text-xs text-slate-400 mt-3 mb-2 font-medium">اطلاعات استخراج شده (OCR):</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {(d as any).fields.map((f: any) => (
+                        <div key={f.id} className="flex items-center justify-between text-xs py-1">
+                          <span className="text-slate-400">{f.field_label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white font-medium">{f.value || "-"}</span>
+                            <div className="w-10 h-1 bg-slate-600 rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full ${f.confidence >= 0.8 ? "bg-emerald-500" : f.confidence >= 0.6 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${f.confidence * 100}%` }} />
+                            </div>
+                            <span className="text-slate-500 w-7 text-left">{Math.round(f.confidence * 100)}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

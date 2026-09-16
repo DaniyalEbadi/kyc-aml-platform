@@ -86,8 +86,13 @@ def get_application(app_id: str, db: Session = Depends(get_db), user: User = Dep
     app = get_application_detail(db, user, app_id)
     customer = db.get(Customer, app.customer_id)
     risk = db.query(RiskAssessment).filter(RiskAssessment.application_id == app.id).order_by(RiskAssessment.created_at.desc()).first()
-    from app.models.entities import Document, ApplicationEvent, ScreeningResult, Decision, Verification, Case, FaceVerification
+    from app.models.entities import Document, ApplicationEvent, ScreeningResult, Decision, Verification, Case, FaceVerification, ExtractedField
     docs = db.query(Document).filter(Document.application_id == app.id).all()
+    doc_ids = [d.id for d in docs]
+    all_fields = db.query(ExtractedField).filter(ExtractedField.document_id.in_(doc_ids)).all() if doc_ids else []
+    fields_by_doc: dict[str, list] = {}
+    for f in all_fields:
+        fields_by_doc.setdefault(f.document_id, []).append(f)
     events = db.query(ApplicationEvent).filter(ApplicationEvent.application_id == app.id).order_by(ApplicationEvent.created_at.desc()).all()
     screenings = db.query(ScreeningResult).filter(ScreeningResult.application_id == app.id).all()
     decisions = db.query(Decision).filter(Decision.application_id == app.id).all()
@@ -135,7 +140,16 @@ def get_application(app_id: str, db: Session = Depends(get_db), user: User = Dep
             ],
         } if risk else None,
         "documents": [
-            {"id": d.id, "doc_type": d.doc_type, "status": d.status, "original_filename": d.original_filename, "content_type": d.content_type, "size_bytes": d.size_bytes, "is_simulated": d.is_simulated, "created_at": d.created_at.isoformat() if d.created_at else None}
+            {
+                "id": d.id, "doc_type": d.doc_type, "status": d.status,
+                "original_filename": d.original_filename, "content_type": d.content_type,
+                "size_bytes": d.size_bytes, "is_simulated": d.is_simulated,
+                "created_at": d.created_at.isoformat() if d.created_at else None,
+                "fields": [
+                    {"id": f.id, "field_name": f.field_name, "field_label": f.field_label, "value": f.value, "confidence": f.confidence, "confirmed": f.confirmed}
+                    for f in fields_by_doc.get(d.id, [])
+                ],
+            }
             for d in docs
         ],
         "events": [
