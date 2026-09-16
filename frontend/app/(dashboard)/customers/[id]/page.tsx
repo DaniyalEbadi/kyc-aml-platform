@@ -12,6 +12,7 @@ export default function CustomerDetailPage() {
   const router = useRouter();
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creatingApp, setCreatingApp] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -21,6 +22,14 @@ export default function CustomerDetailPage() {
 
   if (loading) return <div className="flex items-center justify-center h-96"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>;
   if (!customer) return <div className="text-center text-slate-400 py-20">مشتری یافت نشد</div>;
+
+  const handleCreateApplication = async () => {
+    setCreatingApp(true);
+    try {
+      const app = await api.createApplication();
+      router.push(`/applications/${app.id}`);
+    } catch {} finally { setCreatingApp(false); }
+  };
 
   return (
     <div className="space-y-6">
@@ -74,7 +83,12 @@ export default function CustomerDetailPage() {
 
         {/* Applications */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <h3 className="text-sm font-semibold text-white mb-4">درخواست‌ها ({customer.applications?.length || 0})</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-white">درخواست‌ها ({customer.applications?.length || 0})</h3>
+            <button onClick={handleCreateApplication} disabled={creatingApp} className="px-3 py-1.5 bg-brand-600/20 text-brand-400 text-xs rounded-lg hover:bg-brand-600/30 transition-all disabled:opacity-50">
+              {creatingApp ? "در حال ایجاد..." : "+ درخواست جدید"}
+            </button>
+          </div>
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {customer.applications?.map((app: any) => (
               <button key={app.id} onClick={() => router.push(`/applications/${app.id}`)} className="w-full text-right p-3 bg-slate-700/30 hover:bg-slate-700/50 rounded-xl transition-colors">

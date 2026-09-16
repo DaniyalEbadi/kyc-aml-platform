@@ -69,6 +69,13 @@ class ApiClient {
     return this.request<Customer>(`/api/v1/customers/${id}`);
   }
 
+  async createCustomer(data: { first_name: string; last_name: string; national_id?: string; birth_date?: string; gender?: string; nationality?: string; email?: string; phone?: string; province?: string; city?: string; address?: string }) {
+    return this.request<Customer>("/api/v1/customers", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
   async getApplications(params?: Record<string, string>) {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.request<{ items: Application[]; total: number }>(`/api/v1/applications${qs}`);
@@ -170,6 +177,26 @@ class ApiClient {
   async getDocuments(params?: Record<string, string>) {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.request<Document[]>(`/api/v1/documents${qs}`);
+  }
+
+  async uploadDocument(appId: string, docType: string, file: File) {
+    const formData = new FormData();
+    formData.append("app_id", appId);
+    formData.append("doc_type", docType);
+    formData.append("file", file);
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/api/v1/documents/upload`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: "خطای آپلود" }));
+      throw new Error(err.message || "خطای آپلود");
+    }
+    return res.json();
   }
 }
 

@@ -13,6 +13,8 @@ export default function ApplicationDetailPage() {
   const [app, setApp] = useState<ApplicationDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
+  const [uploading, setUploading] = useState(false);
+  const [uploadDocType, setUploadDocType] = useState("national_id");
 
   useEffect(() => {
     if (params.id) api.getApplication(params.id as string).then(setApp).catch(() => {}).finally(() => setLoading(false));
@@ -20,6 +22,18 @@ export default function ApplicationDetailPage() {
 
   if (loading) return <div className="flex items-center justify-center h-96"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>;
   if (!app) return <div className="text-center text-slate-400 py-20">درخواست یافت نشد</div>;
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !app) return;
+    setUploading(true);
+    try {
+      await api.uploadDocument(app.id, uploadDocType, file);
+      const updated = await api.getApplication(app.id);
+      setApp(updated);
+      setTab("documents");
+    } catch {} finally { setUploading(false); if (e.target) e.target.value = ""; }
+  };
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "overview", label: "نمای کلی" },
@@ -93,6 +107,21 @@ export default function ApplicationDetailPage() {
         )}
         {tab === "documents" && (
           <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-slate-700/30 rounded-xl">
+              <select value={uploadDocType} onChange={(e) => setUploadDocType(e.target.value)}
+                className="px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+                <option value="national_id">کارت ملی</option>
+                <option value="passport">گذرنامه</option>
+                <option value="driver_license">گواهینامه</option>
+                <option value="proof_of_address">مدرک نشانی</option>
+                <option value="selfie">سلفی</option>
+              </select>
+              <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed rounded-xl text-sm cursor-pointer transition-all ${uploading ? "border-brand-500/30 text-brand-400" : "border-slate-600/50 text-slate-400 hover:border-brand-500/50 hover:text-brand-400"}`}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                {uploading ? "در حال آپلود..." : "انتخاب فایل و آپلود"}
+                <input type="file" className="hidden" accept="image/jpeg,image/png,application/pdf" onChange={handleUpload} disabled={uploading} />
+              </label>
+            </div>
             {app.documents.length === 0 ? <p className="text-slate-500 text-center py-8">مدرکی بارگذاری نشده</p> : app.documents.map((d) => (
               <div key={d.id} className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl">
                 <div className="flex items-center gap-3">

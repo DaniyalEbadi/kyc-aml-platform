@@ -94,10 +94,10 @@ export default function VerificationPage() {
                 )}
                 {v.kind === "ocr" && v.details && (
                   <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                    <span>ارائه‌دهنده: {v.details.provider === "mock" ? "شبیه‌ساز" : v.details.provider === "easyocr" ? "EasyOCR (واقعی)" : v.details.provider}</span>
-                    {v.details.is_simulated !== undefined && (
-                      <span className={v.details.is_simulated ? "text-amber-400" : "text-emerald-400"}>
-                        {v.details.is_simulated ? "شبیه‌سازی شده" : "واقعی"}
+                    <span>ارائه‌دهنده: {(v.details as any).provider === "mock" ? "شبیه‌ساز" : (v.details as any).provider === "easyocr" ? "EasyOCR (واقعی)" : (v.details as any).provider}</span>
+                    {(v.details as any).is_simulated !== undefined && (
+                      <span className={(v.details as any).is_simulated ? "text-amber-400" : "text-emerald-400"}>
+                        {(v.details as any).is_simulated ? "شبیه‌سازی شده" : "واقعی"}
                       </span>
                     )}
                   </div>
